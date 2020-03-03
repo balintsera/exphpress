@@ -14,6 +14,10 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "react/event-loop": "^1.1.1"
+        "react/event-loop": "^1.1.1",
+        "react/http": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {"Exphpress\\": "Exphpress/"}
     }
 }
