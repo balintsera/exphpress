@@ -21,8 +21,8 @@ and the same in PHP:
 
 ```php
 $app = new \Exphpress\App();
+$port = 8080;
 $app->get('/hello', function (ServerRequestInterface $request) {
-    error_log("handler", 4);
     return new Response(
         200,
         array(
@@ -31,5 +31,5 @@ $app->get('/hello', function (ServerRequestInterface $request) {
         'hello world'
     );
 });
-$app->listen(8080);
+$app->listen($port);
 ```
