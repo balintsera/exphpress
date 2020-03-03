@@ -19,7 +19,6 @@ class App
 
     // $handler function handler(\Psr\Http\Message\ServerRequestInterface, RingCentral\Psr7\Response)
     public function get(string $path, callable $handler) {
-        error_log("adding to app routes " . $path);
         $this->routes->add(new Route('GET', $path, $handler));
     }
 
@@ -35,9 +34,8 @@ class App
         $this->server->listen($socket);
 
 
-
+        error_log('Exphpress app running on ' . $port);
         $loop->run();
-        error_log('Exphpress running on ' . $port);
     }
 
     /**
@@ -60,7 +58,7 @@ class App
     private function handler(ServerRequestInterface $request) {
         $uri = $request->getUri();
         $dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
-            error_log("dispatching", 4);
+            //error_log("dispatching, number of routes: " . count($this->routes), 4);
             foreach ($this->routes as $route) {
                 error_log("adding route: " . $route->getPath());
                 $r->addRoute($route->getMethod(), $route->getPath(), $route->getCb());
@@ -98,18 +96,7 @@ class App
             array(
                 'Content-Type' => 'text/plain'
             ),
+            'unknown error'
         );
-    }
-
-    public function helloRouteHandler() {
-        error_log("hello route handler", 4);
-        return new Response(
-            200,
-            array(
-                'Content-Type' => 'text/plain'
-            ),
-            "Hello World!\n"
-        );
-
     }
 }

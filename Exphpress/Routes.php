@@ -4,44 +4,49 @@
 namespace Exphpress;
 
 
-class Routes implements \Iterator
+class Routes implements \Iterator, \Countable
 {
     private array $routes;
+    private int $position = 0;
+
+    public function __construct() {
+        $this->position = 0;
+    }
 
     public function add(Route $r) :Routes {
         $this->routes[] = $r;
-
+        $this->position++;
         return $this;
     }
 
 
     public function current()
     {
-        current($this->routes);
+        return $this->routes[$this->position];
     }
 
     public function next()
     {
-        next($this->routes);
+        ++$this->position;
     }
 
     public function key()
     {
-        key($this->routes);
+        return $this->position;
     }
 
     public function valid()
     {
-        if (key($this->routes) > count($this->routes)) {
-            return false;
-        }
-
-        return true;
+        return isset($this->routes[$this->position]);
     }
 
     public function rewind()
     {
-        prev($this->routes);
+        $this->position = 0;
     }
 
+    public function count()
+    {
+        return count($this->routes);
+    }
 }
