@@ -6,14 +6,21 @@ namespace Exphpress;
 use \Psr\Http\Message\ServerRequestInterface;
 use \React\Http\{ Server, Response };
 use \FastRoute;
+use \FastRoute\Dispatcher;
 class App
 {
     private int $port;
     private Server $server;
     private Routes $routes;
+    private array $middlewares;
+
+
+    // deliberately missing type
+    private $dispatcher;
 
     public function __construct() {
         $this->routes = new Routes();
+        $this->middlewares = [];
     }
 
 
@@ -22,15 +29,25 @@ class App
         $this->routes->add(new Route('GET', $path, $handler));
     }
 
+    // callable(req, res, next)
+    public function use(callable $middleware) {
+        $this->middlewares[] = $middleware;
+    }
+
+
     public function listen(int $port) {
         $this->port = $port;
         $loop = \React\EventLoop\Factory::create();
 
-
         $socket = new \React\Socket\Server('0.0.0.0:'.$port, $loop);
-        $this->server = new Server(function(ServerRequestInterface $request) {
+
+        // add the last handler to the middleware chain
+        $this->middlewares[] = function(ServerRequestInterface $request) {
             return $this->handler($request);
-        });
+        };
+
+        // start
+        $this->server = new Server($this->middlewares);
         $this->server->listen($socket);
 
 
@@ -57,15 +74,22 @@ class App
 
     private function handler(ServerRequestInterface $request) {
         $uri = $request->getUri();
-        $dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
-            //error_log("dispatching, number of routes: " . count($this->routes), 4);
-            foreach ($this->routes as $route) {
-                error_log("adding route: " . $route->getPath());
-                $r->addRoute($route->getMethod(), $route->getPath(), $route->getCb());
-            }
-        });
 
-        $routeInfo = $dispatcher->dispatch($request->getMethod(), $uri->getPath());
+        // run only once
+        // can't find any other way to initialize the dispatcher first in the constructor
+        // and add the routes in the last possible time (before the first request)
+        if ($this->dispatcher == null) {
+            $this->dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
+                //error_log("dispatching, number of routes: " . count($this->routes), 4);
+                foreach ($this->routes as $route) {
+                    error_log("adding route: " . $route->getPath());
+                    $r->addRoute($route->getMethod(), $route->getPath(), $route->getCb());
+                }
+            });
+        }
+
+
+        $routeInfo = $this->dispatcher->dispatch($request->getMethod(), $uri->getPath());
 
         switch ($routeInfo[0]) {
             case FastRoute\Dispatcher::NOT_FOUND:
@@ -96,7 +120,6 @@ class App
             array(
                 'Content-Type' => 'text/plain'
             ),
-            'unknown error'
         );
     }
 }

@@ -6,7 +6,7 @@ use React\Http\Response;
 $app = new \Exphpress\App();
 $app->get('/hello', function (ServerRequestInterface $request) {
     error_log("handler", 4);
-    return new Response(
+     new Response(
         200,
         array(
             'Content-Type' => 'text/plain'
@@ -14,4 +14,9 @@ $app->get('/hello', function (ServerRequestInterface $request) {
         'hello world'
     );
 });
+$app->use(function (ServerRequestInterface $request, callable $next) {
+    error_log("first middleware");
+    $next($request);
+});
+
 $app->listen(8080);
