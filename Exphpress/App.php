@@ -5,19 +5,22 @@ namespace Exphpress;
 
 use \Psr\Http\Message\ServerRequestInterface;
 use \React\Http\{ Server, Response };
-
+use \FastRoute;
 class App
 {
-    private $port;
-    private $server;
+    private int $port;
+    private Server $server;
+    private Routes $routes;
 
     public function __construct() {
+        $this->routes = new Routes();
     }
 
 
     // $handler function handler(\Psr\Http\Message\ServerRequestInterface, RingCentral\Psr7\Response)
     public function get(string $path, callable $handler) {
-
+        error_log("adding to app routes " . $path);
+        $this->routes->add(new Route('GET', $path, $handler));
     }
 
     public function listen(int $port) {
@@ -30,6 +33,9 @@ class App
             return $this->handler($request);
         });
         $this->server->listen($socket);
+
+
+
         $loop->run();
         error_log('Exphpress running on ' . $port);
     }
@@ -53,8 +59,50 @@ class App
 
     private function handler(ServerRequestInterface $request) {
         $uri = $request->getUri();
-        var_dump($uri);
-        // add routing here (on every request? seems totally resource wasting
+        $dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
+            error_log("dispatching", 4);
+            foreach ($this->routes as $route) {
+                error_log("adding route: " . $route->getPath());
+                $r->addRoute($route->getMethod(), $route->getPath(), $route->getCb());
+            }
+        });
+
+        $routeInfo = $dispatcher->dispatch($request->getMethod(), $uri->getPath());
+
+        switch ($routeInfo[0]) {
+            case FastRoute\Dispatcher::NOT_FOUND:
+                return new Response(
+                    404,
+                    array(
+                        'Content-Type' => 'text/plain'
+                    ),
+                );
+                break;
+            case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
+                $allowedMethods = $routeInfo[1];
+                return new Response(
+                    405,
+                    array(
+                        'Content-Type' => 'text/plain'
+                    ),
+                );
+                break;
+            case FastRoute\Dispatcher::FOUND:
+                $handler = $routeInfo[1];
+                $vars = $routeInfo[2];
+                return $handler($request);
+                break;
+        }
+        return new Response(
+            500,
+            array(
+                'Content-Type' => 'text/plain'
+            ),
+        );
+    }
+
+    public function helloRouteHandler() {
+        error_log("hello route handler", 4);
         return new Response(
             200,
             array(
@@ -62,5 +110,6 @@ class App
             ),
             "Hello World!\n"
         );
+
     }
 }
