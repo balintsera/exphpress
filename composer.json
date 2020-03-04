@@ -1,0 +1,26 @@
+{
+  "name": "balintsera/exphpress",
+  "description": "A react php clone of the famous Express framework based on ReactPHP",
+  "type": "library",
+  "require-dev": {
+    "phpunit/phpunit": "^9.1@dev"
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Bálint Séra",
+      "email": "balint.sera@gmail.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "react/event-loop": "^1.1.1",
+    "react/http": "dev-master",
+    "nikic/fast-route": "^1.3"
+  },
+  "autoload": {
+    "psr-4": { "Exphpress\\": "src/"}
+  }
+
+}
