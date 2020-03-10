@@ -4,7 +4,8 @@
 namespace Exphpress;
 
 use \Psr\Http\Message\ServerRequestInterface;
-use \React\Http\{ Server, Response };
+use \React\Http\{ StreamingServer, Response };
+use \React\Promise\Promise;
 use \FastRoute;
 use \FastRoute\Dispatcher;
 
@@ -13,7 +14,7 @@ define('SIGINT', 2);
 class App
 {
     private int $port;
-    private Server $server;
+    private StreamingServer $server;
     private Routes $routes;
     private array $middlewares;
 
@@ -50,15 +51,36 @@ class App
 
         // add the last handler to the middleware chain
         $this->middlewares[] = function(ServerRequestInterface $request) {
-            return $this->handler($request);
+            return new Promise(function ($resolve, $reject) use ($request) {
+                $contentLength = 0;
+                $request->getBody()->on('data', function ($data) use (&$contentLength) {
+                    $contentLength += strlen($data);
+                });
+
+                $request->getBody()->on('end', function () use ($resolve, &$contentLength, $request){
+                    $resolve($this->handler($request));
+                });
+
+                // an error occures e.g. on invalid chunked encoded data or an unexpected 'end' event
+                $request->getBody()->on('error', function (\Exception $exception) use ($resolve, &$contentLength) {
+                    $response = new Response(
+                        400,
+                        array(
+                            'Content-Type' => 'text/plain'
+                        ),
+                        "An error occured while reading at length: " . $contentLength
+                    );
+                    $resolve($response);
+                });
+            });
         };
 
         // start
-        $this->server = new Server($this->middlewares);
+        $this->server = new StreamingServer($this->middlewares);
         $this->server->listen($socket);
 
 
-        error_log('Exphpress app is running on ' . $port);
+        error_log('Exphpress app running on ' . $port);
         $loop->run();
     }
 
@@ -70,13 +92,6 @@ class App
         return $this->port;
     }
 
-    /**
-     * @return \React\Http\Server
-     */
-    public function getServer(): \React\Http\Server
-    {
-        return $this->server;
-    }
 
 
     private function handler(ServerRequestInterface $request) {

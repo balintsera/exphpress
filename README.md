@@ -32,7 +32,6 @@ $app = new \Exphpress\App();
 $port = 8080;
 
 $app->get('/hello', function (ServerRequestInterface $request) {
-    error_log("handler", 4);
     return new Response(
         200,
         array(
@@ -56,7 +55,7 @@ $app->listen($port);
 composer require balintsera/exphpress
 ```
 
-Then organize your project anyway, the framework is located in this package.
+Then organize your project the way you want, all the framework files are located in this package.
 
 Because it has some special needs, like libuv and a pecl extension that wraps libuv, I recommend to use this dockerfile to build and run the example above.
 
