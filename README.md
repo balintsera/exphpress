@@ -2,9 +2,17 @@
 
 Exphpress (pronounced as 'exfress') is a PHP clone of the famous Node.js framework, Express. The goal is a 80% api compatibility with it.
 
-It's just a hobby project for fun, but it can be useful if you need your well-known Express.js and async scalability.
 
 
+It's just a hobby project for fun, but it can be useful if you need your well-known Express.js and async scalability. 
+
+It's already faster then a default Laravel install by more than 9000 times. 
+
+Yes, it's more than *9000 times*. 🚀🚀🚀🚀
+
+The reason is simple: while Laravel and every other frameworks by the way are dies after every request, Exphpress is continuously running and doesn't need to recompile and rerun everything when a request comes in.
+
+And it's only 4 times slower then Express.js and I'll make everything that's possible to gain upon it.
 
 ## Supported API calls
 
@@ -55,7 +63,7 @@ $app->listen($port);
 composer require balintsera/exphpress
 ```
 
-Then organize your project the way you want, all the framework files are located in this package.
+Then organize your project the way you want, all the framework files are located in this package. 
 
 Because it has some special needs, like libuv and a pecl extension that wraps libuv, I recommend to use this dockerfile to build and run the example above.
 
