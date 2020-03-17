@@ -10,7 +10,7 @@ It's already faster then a default Laravel install by more than 9000 times.
 
 Yes, it's more than *9000 times*. 🚀🚀🚀🚀
 
-The reason is simple: while Laravel and every other frameworks by the way are dies after every request, Exphpress is continuously running and doesn't need to recompile and rerun everything when a request comes in.
+The reason is simple: while Laravel and every other frameworks by the way die after every request, Exphpress runs continuously and doesn't need to recompile and rerun everything when a request comes in.
 
 And it's only 4 times slower then Express.js and I'll make everything that's possible to gain upon it.
 
